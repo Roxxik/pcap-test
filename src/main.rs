@@ -85,7 +85,6 @@ struct Connection {
     bytes: u64,
     last_seen: libc::timeval,
 }
-
 impl Connection {
     fn new(src_addr: Ipv4Addr, dst_addr: Ipv4Addr, src_port: u16, dst_port: u16, bytes: u64, ts: libc::timeval) -> Connection {
         Connection {
@@ -119,7 +118,7 @@ impl Connection {
     }
 }
 
-impl fmt::Display for Connection {
+impl fmt::Debug for Connection {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         write!(fmt, "{}:{} {}:{} {}({})", self.ip1, self.port1, self.ip2, self.port2, self.bytes, self.packets)
     }
@@ -137,18 +136,19 @@ impl Counter {
     }
 }
 
-impl fmt::Display for Counter {
+impl fmt::Debug for Counter {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         for conn in self.tcp_conn.iter() {
-            write!(fmt, "tcp: {}\n", conn)?;
+            write!(fmt, "tcp: {:?}\n", conn)?;
         }
         for conn in self.udp_conn.iter() {
-            write!(fmt, "udp: {}\n", conn)?;
+            write!(fmt, "udp: {:?}\n", conn)?;
         }
         write!(fmt, "\n")
     }
 }
 
+#[derive(Debug)]
 enum Protocol {
     TCP,
     UDP,
@@ -172,6 +172,7 @@ impl PacketCodec for CounterCodec {
                         Some((UDP, udp_header.source_port, udp_header.dest_port))
                     } else { None }
                 },
+                _ => None
             };
             if let Some((protocol, src_port, dst_port)) = tmp {
                 Some((protocol, Connection::new(ipv4_header.source_addr, ipv4_header.dest_addr, src_port, dst_port, packet.header.len as u64, packet.header.ts)))
@@ -228,7 +229,7 @@ fn ma1n() -> Result<(),Error> {
     let cap = Capture::from_device("any")?.open()?;
     let s = cap.stream(&handle, CounterCodec{})?;
     let done = s.for_each(move |conn| {
-        println!("{}", cnt);
+        println!("{:?}", conn);
         Ok(())
     });
     core.run(done).unwrap();
