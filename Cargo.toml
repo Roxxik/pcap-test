@@ -1,0 +1,16 @@
+[package]
+name = "hogger"
+version = "0.1.0"
+authors = ["Stefan Nitz <nitz.stefan@googlemail.com>"]
+
+[dependencies]
+argparse = "*"
+pktparse = "*"
+nom = "*"
+mio = "*"
+tokio-core="*"
+futures="*"
+libc="*"
+
+[dependencies.pcap]
+path = "../mypcap"
